@@ -60,11 +60,28 @@ const options: HarmonicEntropyOptions = {
   normalize: false,
 };
 
+// Compute the set of rational numbers to consider.
 const ratios = precalculateRatios(options);
+
+// Compute the table of [cents, entropy] pairs. Entropy is measured in natural (base e) units.
 const table = harmonicEntropy(options, ratios);
 
-console.log(table[0]); // [0, ...]
-console.log(table[table.length - 1]); // [2400, ...]
+// This would be replaced by passing the table your favorite plotting library.
+console.log(table);
+
+/*
+[
+  [0, 2.465367706139234],
+  [1, 2.4695232705775982],
+  [2, 2.481975530994572],
+  [3, 2.5026079139822173],
+  [4, 2.5312627678840913],
+  [5, 2.5676902925403278],
+  ...
+  [2399, 3.900196510219676],
+  [2400, 3.898697709259859],
+]
+*/
 ```
 
 ## Example: evaluate individual intervals
@@ -83,7 +100,17 @@ const pureFifth = entropy.ofFraction('3/2');
 // Numeric input is interpreted as a frequency ratio.
 const sameFifth = entropy.ofFraction(3 / 2);
 
-console.log({perfectFifth, pureFifth, sameFifth});
+// Tablulated values are linearly interpolated
+const majorSixth = entropy.ofFraction('5/3');
+
+console.log({perfectFifth, pureFifth, majorSixth});
+/*
+{
+  perfectFifth: 4.126342260377048,
+  pureFifth:    4.121900707092091,
+  majorSixth:   4.42017406844399,
+}
+*/
 ```
 
 ## Serialization and revival
@@ -95,7 +122,9 @@ const calc = new EntropyCalculator({N: 1000});
 const serialized = JSON.stringify(calc);
 
 const revived = JSON.parse(serialized, EntropyCalculator.reviver);
+
 console.log(revived.ofCents(700));
+// 4.126342260377048
 ```
 
 ## Notes and caveats
