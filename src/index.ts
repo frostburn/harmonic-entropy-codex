@@ -1,5 +1,16 @@
-import {Fraction, FractionValue, gcd, valueToCents} from 'xen-dev-utils';
+import {Fraction, FractionValue, valueToCents} from 'xen-dev-utils';
 import {conv, padded64} from './helpers';
+
+function gcdInt(a: number, b: number) {
+  let x = Math.abs(a);
+  let y = Math.abs(b);
+  while (y !== 0) {
+    const r = x % y;
+    x = y;
+    y = r;
+  }
+  return x;
+}
 
 /**
  * Options for configuring harmonic entropy calculation.
@@ -188,7 +199,7 @@ export function precalculateRatios(options: HarmonicEntropyOptions) {
           continue;
         }
         const m = n / i;
-        if (gcd(i, m) === 1) {
+        if (gcdInt(i, m) === 1) {
           r.push([i, m]); //does numerator on left, denominator on right
           if (m !== i) r.push([m, i]);
         }
@@ -198,7 +209,7 @@ export function precalculateRatios(options: HarmonicEntropyOptions) {
     n ??= 1000;
     do {
       for (let i = 0; i <= n; i++) {
-        if (gcd(i, n) === 1) {
+        if (gcdInt(i, n) === 1) {
           r.push([n, i]);
           if (n !== i) r.push([i, n]);
         }
