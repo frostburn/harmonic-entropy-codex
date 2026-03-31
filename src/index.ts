@@ -58,40 +58,74 @@ export function harmonicEntropy(
   const k = padded64(kernelSize);
   const ak = padded64(kernelSize);
 
-  for (let i = ratios.length - 1; i >= 0; i--) {
-    let rcompl;
+  if (series === 'tenney') {
+    for (let i = ratios.length - 1; i >= 0; i--) {
+      const ratio = ratios[i];
+      const numerator = ratio[0];
+      const denominator = ratio[1];
+      const rcent = valueToCents(numerator / denominator);
+      const rcompl = Math.sqrt(numerator * denominator);
 
-    const rcent = valueToCents(ratios[i][0] / ratios[i][1]);
+      //check for bounds to optimize
+      if (rcent < min || rcent > max) continue;
 
-    if (series === 'tenney') rcompl = Math.sqrt(ratios[i][0] * ratios[i][1]);
-    else if (series === 'farey') rcompl = ratios[i][1];
-    else throw new Error(`Unsupported series ${series}`);
+      rcount++;
 
-    //check for bounds to optimize
-    if (rcent < min || rcent > max) continue;
+      let mu = (rcent - min) / res;
+      const index = Math.floor(mu);
+      mu -= index;
 
-    rcount++;
+      const icompl = 1 / rcompl;
+      const acompl = Math.pow(rcompl, -a);
 
-    let mu = (rcent - min) / res;
-    const index = Math.floor(mu);
-    mu -= index;
+      //start building kernel, first check for rounded off case that doesn't need interpolation
+      if (!mu) {
+        k[index] += icompl;
+        ak[index] += acompl;
+      }
+      //or else we do need interpolation
+      else {
+        k[index] += icompl * (1 - mu);
+        k[index + 1] += icompl * mu;
 
-    const icompl = 1 / rcompl;
-    const acompl = Math.pow(rcompl, -a);
-
-    //start building kernel, first check for rounded off case that doesn't need interpolation
-    if (!mu) {
-      k[index] += icompl;
-      ak[index] += acompl;
+        ak[index] += acompl * (1 - mu);
+        ak[index + 1] += acompl * mu;
+      }
     }
-    //or else we do need interpolation
-    else {
-      k[index] += icompl * (1 - mu);
-      k[index + 1] += icompl * mu;
+  } else if (series === 'farey') {
+    for (let i = ratios.length - 1; i >= 0; i--) {
+      const ratio = ratios[i];
+      const rcent = valueToCents(ratio[0] / ratio[1]);
+      const rcompl = ratio[1];
 
-      ak[index] += acompl * (1 - mu);
-      ak[index + 1] += acompl * mu;
+      //check for bounds to optimize
+      if (rcent < min || rcent > max) continue;
+
+      rcount++;
+
+      let mu = (rcent - min) / res;
+      const index = Math.floor(mu);
+      mu -= index;
+
+      const icompl = 1 / rcompl;
+      const acompl = Math.pow(rcompl, -a);
+
+      //start building kernel, first check for rounded off case that doesn't need interpolation
+      if (!mu) {
+        k[index] += icompl;
+        ak[index] += acompl;
+      }
+      //or else we do need interpolation
+      else {
+        k[index] += icompl * (1 - mu);
+        k[index + 1] += icompl * mu;
+
+        ak[index] += acompl * (1 - mu);
+        ak[index + 1] += acompl * mu;
+      }
     }
+  } else {
+    throw new Error(`Unsupported series ${series}`);
   }
 
   // do convolution
@@ -150,8 +184,11 @@ export function precalculateRatios(options: HarmonicEntropyOptions) {
     do {
       const max = Math.floor(Math.sqrt(n));
       for (let i = 1; i <= max; i++) {
+        if (n % i !== 0) {
+          continue;
+        }
         const m = n / i;
-        if (Number.isInteger(m) && gcd(i, m) === 1) {
+        if (gcd(i, m) === 1) {
           r.push([i, m]); //does numerator on left, denominator on right
           if (m !== i) r.push([m, i]);
         }
