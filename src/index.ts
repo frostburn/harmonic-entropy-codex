@@ -77,7 +77,7 @@ export function harmonicEntropy(
       const rcent = valueToCents(numerator / denominator);
       const rcompl = Math.sqrt(numerator * denominator);
 
-      //check for bounds to optimize
+      // Check bounds to optimize.
       if (rcent < min || rcent > max) continue;
 
       rcount++;
@@ -89,12 +89,12 @@ export function harmonicEntropy(
       const icompl = 1 / rcompl;
       const acompl = Math.pow(rcompl, -a);
 
-      //start building kernel, first check for rounded off case that doesn't need interpolation
+      // Rounded case that does not need interpolation.
       if (!mu) {
         k[index] += icompl;
         ak[index] += acompl;
       }
-      //or else we do need interpolation
+      // Otherwise perform linear interpolation.
       else {
         k[index] += icompl * (1 - mu);
         k[index + 1] += icompl * mu;
@@ -109,7 +109,7 @@ export function harmonicEntropy(
       const rcent = valueToCents(ratio[0] / ratio[1]);
       const rcompl = ratio[1];
 
-      //check for bounds to optimize
+      // Check bounds to optimize.
       if (rcent < min || rcent > max) continue;
 
       rcount++;
@@ -121,12 +121,12 @@ export function harmonicEntropy(
       const icompl = 1 / rcompl;
       const acompl = Math.pow(rcompl, -a);
 
-      //start building kernel, first check for rounded off case that doesn't need interpolation
+      // Rounded case that does not need interpolation.
       if (!mu) {
         k[index] += icompl;
         ak[index] += acompl;
       }
-      //or else we do need interpolation
+      // Otherwise perform linear interpolation.
       else {
         k[index] += icompl * (1 - mu);
         k[index + 1] += icompl * mu;
